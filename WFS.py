@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 
 # ---- Inter Font & Modern UI CSS ----
-st.markdownst.markdown("""
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
 
