@@ -7,7 +7,21 @@ import streamlit as st
 import pandas as pd
 
 # ---- Inter Font & Modern UI CSS ----
-st.markdown("""
+st.markdownst.markdown("""
+<div style="background:#fafbff; border-radius:2rem; padding:2rem 1rem; width:340px;margin:auto;box-shadow:0 2px 8px #E0E7EF; text-align:center;">
+    <div style='font-size:3.1rem; font-weight:900; font-family:Inter,Arial,sans-serif; margin-bottom:.7rem;'>27°</div>
+    <div style='font-size:1.12rem; font-weight:600; color:#212123; letter-spacing:-0.5px;'>Suliyari Mine</div>
+    <div style='font-size:1.05rem; color:#18964d; font-weight:400; margin-bottom:1.2rem;'>Low Impact, Normal Operations</div>
+    <hr style='margin:1rem 0;border-top:1px solid #ececec;'/>
+    <div style='display:flex; justify-content:space-between; gap:.2rem;'>
+      <div style='flex:1;font-weight:500;font-size:.99rem;'>Humidity<br><span style='font-weight:700;'>68%</span></div>
+      <div style='flex:1;font-weight:500;font-size:.99rem;'>Wind<br><span style='font-weight:700;'>7 km/h</span></div>
+      <div style='flex:1;font-weight:500;font-size:.99rem;'>Rain<br><span style='font-weight:700;'>1.1 mm</span></div>
+      <div style='flex:1;font-weight:500;font-size:.99rem;'>Visibility<br><span style='font-weight:700;'>9 km</span></div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+("""
 <style>
 @import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
 
