@@ -10,51 +10,82 @@ import pandas as pd
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
+
 body, .main-header, .sub-header, .mine-name, .card-title, .metric, .caption {
     font-family: 'Inter', Arial, sans-serif !important;
 }
 .main-header {
-    font-size: 2.2rem;
+    font-size: 2.3rem;
     font-weight: 900;
-    color: #071654;
-    letter-spacing: -0.03em;
+    color: #04386f;
+    letter-spacing: -0.02em;
     text-align: center;
-    margin-bottom: 0.7rem;
-    background-color: #fff;
-    padding: .8rem 0 0.34rem 0;
-    border-radius: 1rem;
-    box-shadow:0 2px 8px #e0e7ef5C;
+    margin-bottom: 0.5rem;
 }
 .sub-header {
-    font-size: 1.12rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #18964d;
     text-align: center;
     margin-bottom: 2rem;
     letter-spacing: -0.01em;
-    background:#fff; padding:0.39rem 0 .13rem 0; border-radius:.9rem;
 }
-.mine-card {
-    background:#fff; border-radius:2rem; box-shadow: 0 2px 16px #e0e7ef51; padding:2.4rem 1.3rem 1.1rem 1.3rem; width:350px; margin:auto; text-align:center; margin-bottom:2.4rem;
+.sidebar .stSelectbox, .sidebar .stMultiSelect, .sidebar label {
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #34495e;
 }
-.mine-title {
-    font-size:1.38rem; font-weight:700; color:#071654; margin-bottom:0.37rem; background:transparent;
+.card-title, .mine-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #071654;
+    margin-top: 1.1rem;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.01em;
 }
-.big-temp {
-    font-size:2.65rem; font-weight:900; color:#1B2733; margin-bottom:0.63rem;
+.metric-card {
+    background-color: #f0f8ff;
+    border-radius: 0.7rem;
+    margin: 0.5rem 0;
+    padding: 1rem;
 }
-.mine-status-low { font-size:1.11rem; color:#18b178; font-weight:600; margin-bottom: 0.99rem;}
-.mine-status-high { color:#F44336; }
-.mine-status-moderate { color:#FFA500; }
-.metric-row {
-    display:flex; justify-content:space-between; gap:.7rem;
+.alert-high {
+    background-color: #F44336;
+    border-radius: 0.7rem;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 1rem;
 }
-.metric-tile {
-    background:#fafbff; border-radius:.8rem; box-shadow:0 1px 6px #e0e7ef19; flex:1; padding:.6rem .1rem; margin:.14rem;
-    font-weight:500; font-size:.98rem; color:#34495e;
+.alert-moderate {
+    background-color: #FFA500;
+    border-radius: 0.7rem;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 1rem;
 }
-.metric-tile span { font-weight:700; font-size:1.08rem; color:#071654;}
-hr {margin:1.11rem 0 0.7rem 0; border-top:1px solid #ececec;}
+.alert-low {
+    background-color: #07B34F;
+    border-radius: 0.7rem;
+    color: #1B2733 !important;
+    font-weight: 900;
+    padding: 1rem;
+}
+.slab-card {
+    background-color: #f7fcfe;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    font-size: 0.98rem;
+}
+.caption {
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-size: 0.95rem;
+    color: #8392A7;
+    margin-top: 1.5rem;
+    font-weight: 400;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -111,15 +142,6 @@ def get_rain_type(mm, is_2hr_slab=False, overall_description=None):
             return "No Rain ☀️"
 
 def get_production_status(total_rain_mm, slabs):
-    # If absolutely NO rain/precip etc, and NO alert slabs, show totally clear status
-    no_rain = (total_rain_mm == 0)
-    no_alerts = True
-    for slab in slabs:
-        if slab['mm'] > 0 or slab['lightning'] or slab['wind_speed'] >= WIND_ALERT_THRESHOLD_KMH or slab['visibility_km'] <= VISIBILITY_ALERT_THRESHOLD_KM:
-            no_alerts = False
-            break
-    if no_rain and no_alerts:
-        return "Low", "Clear weather. No operational hazard."
     impact_level = "Low"
     status_msg = "Normal operations, minor impact possible"
     if total_rain_mm >= 15:
@@ -393,6 +415,8 @@ if not selected_mines:
 for mine_name in selected_mines:
     mine = next((m for m in MINE_LOCATIONS if m["name"] == mine_name), None)
     if not mine: continue
+    st.markdown(f'<div class="mine-name">📍 {mine_name}</div>', unsafe_allow_html=True)
+    st.markdown(f"**Coordinates:** Lat {mine['lat']}, Lon {mine['lon']}")
 
     with st.spinner(f"Fetching forecast for {mine_name}..."):
         forecast_by_day = fetch_consolidated_forecast(mine["lat"], mine["lon"])
@@ -401,28 +425,18 @@ for mine_name in selected_mines:
         continue
     current_date_ist = datetime.now(IST).date()
     
-    # Get today's summary
+    # -- ALERTS LOGIC BLOCK (TOP OF MINE SECTION, before tabs) --
     day_hourly_data = forecast_by_day.get(current_date_ist)
-    big_temp = "--"
-    humidity = "--"
-    wind = "--"
-    rain = "--"
-    visibility = "--"
-    status = ""
-    slab_status = ""
-    status_class = "mine-status-low"
     if day_hourly_data:
         day_summary = get_daily_summary_and_slabs(day_hourly_data)
         impact_level, status_msg = get_production_status(day_summary['total_rain'], day_summary['slabs'])
-        big_temp = day_summary["max_temp"]
-        humidity = int(day_hourly_data[0][1].get("pop",0)) if day_hourly_data else "--"
-        wind = int(day_hourly_data[0][1].get("wind_speed",0)) if day_hourly_data else "--"
-        rain = day_summary["total_rain"]
-        visibility = int(day_hourly_data[0][1].get("visibility_km",0)) if day_hourly_data else "--"
-        status = status_msg
-        status_class = "mine-status-low"
-        if impact_level == "High": status_class = "mine-status-high"
-        elif impact_level == "Moderate": status_class = "mine-status-moderate"
+        # Production impact level alert
+        if impact_level == "High":
+            st.error(f"🚩 **ALERT**: {mine_name} expects **HIGH impact** — {status_msg}")
+        elif impact_level == "Moderate":
+            st.warning(f"⚠️ {mine_name}: {status_msg}")
+
+        # Per-slab detailed alerts
         slab_alerts = []
         for slab in day_summary['slabs']:
             details = []
@@ -435,30 +449,62 @@ for mine_name in selected_mines:
             if slab['mm'] > 0:
                 details.append(f"🌧️ Rain ({slab['mm']} mm, {slab['type']})")
             if details:
-                slab_alerts.append(f"{slab['time_range']}: {'; '.join(details)}")
+                slab_alerts.append((slab['time_range'], "; ".join(details)))
         if slab_alerts:
-            slab_status = "<br>".join(slab_alerts)
-        else:
-            slab_status = "No hazardous time windows detected today."
-    
-    # --- MAIN CARD ---
-    st.markdown(f"""
-    <div class="mine-card">
-      <div class="mine-title">{mine_name}</div>
-      <div class="big-temp">{big_temp}°</div>
-      <div class="{status_class}">{status}</div>
-      <hr/>
-      <div class="metric-row">
-        <div class="metric-tile">Humidity<br><span>{humidity}%</span></div>
-        <div class="metric-tile">Wind<br><span>{wind} km/h</span></div>
-        <div class="metric-tile">Rain<br><span>{rain} mm</span></div>
-        <div class="metric-tile">Visibility<br><span>{visibility} km</span></div>
-      </div>
-      <hr/>
-      <div style="font-size:.98rem; font-weight:600; color:#34495e; margin-top:1rem;">
-          <span>⚡ Hazardous Windows Today:</span><br> {slab_status}
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+            for time_range, alert_detail in slab_alerts:
+                st.markdown(f"<div class='alert-moderate'><strong>⏰ {time_range}:</strong> {alert_detail}</div>", unsafe_allow_html=True)
+        elif impact_level == "Low":
+            st.markdown("<div class='alert-low'>✅ No operational hazards detected for today.</div>", unsafe_allow_html=True)
 
+    tab1, tab2 = st.tabs(["📅 Today", "📅 Tomorrow"])
+    for tab, day_offset in [(tab1, 0), (tab2, 1)]:
+        target_day = current_date_ist + timedelta(days=day_offset)
+        with tab:
+            if target_day not in forecast_by_day:
+                st.warning(f"No forecast data available for {target_day.strftime('%d %B, %Y')}")
+                continue
+            day_hourly_data = forecast_by_day[target_day]
+            day_summary = get_daily_summary_and_slabs(day_hourly_data)
+            st.markdown(f"### {target_day.strftime('%d %B, %Y')}")
+            col1, col2, col3, col4, col5 = st.columns(5)
+            with col1: st.metric("Weather", day_summary['weather_desc'])
+            with col2: st.metric("Max Temp", f"{day_summary['max_temp']}°C")
+            with col3: st.metric("Min Temp", f"{day_summary['min_temp']}°C")
+            with col4: st.metric("Total Rainfall", f"{day_summary['total_rain']} mm")
+            with col5: st.metric("Rain Probability", f"{day_summary['total_rain_pop']}%")
+            impact_level, status_msg = get_production_status(day_summary['total_rain'], day_summary['slabs'])
+            if impact_level == "High":
+                st.markdown(f'<div class="alert-high"><strong>🚨 High Impact:</strong> {status_msg}</div>', unsafe_allow_html=True)
+            elif impact_level == "Moderate":
+                st.markdown(f'<div class="alert-moderate"><strong>⚠️ Moderate Impact:</strong> {status_msg}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="alert-low"><strong>✅ Low Impact:</strong> {status_msg}</div>', unsafe_allow_html=True)
+            if day_summary['slabs']:
+                st.markdown("### 🌧️ Precipitation Windows")
+                for slab in day_summary['slabs']:
+                    alerts = []
+                    if slab['lightning']:
+                        alerts.append("⚡ Lightning")
+                    if slab['wind_speed'] >= WIND_ALERT_THRESHOLD_KMH:
+                        alerts.append(f"💨 High Wind ({slab['wind_speed']} km/h)")
+                    if slab['visibility_km'] <= VISIBILITY_ALERT_THRESHOLD_KM:
+                        alerts.append(f"👁️ Low Visibility ({slab['visibility_km']} km)")
+                    alert_str = " | ".join(alerts) if alerts else "No alerts"
+                    st.markdown(f"""
+                    <div class="slab-card">
+                        <strong>{slab['time_range']}</strong><br>
+                        🌧️ {slab['mm']} mm ({slab['type']}) - {slab['prob']}% probability<br>
+                        <span style="color: {'#F44336' if alerts else '#07B34F'};">{alert_str}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("No significant precipitation expected.")
+            if day_hourly_data:
+                st.markdown("### 🌡️ Temperature Trend")
+                temp_data = pd.DataFrame([
+                    {"Time": dt.strftime("%H:%M"), "Temperature (°C)": data['temp']}
+                    for dt, data in day_hourly_data
+                ])
+                st.line_chart(temp_data.set_index("Time"))
+            st.markdown("---")
 st.caption(f"Last updated: {datetime.now(IST).strftime('%d %B %Y, %I:%M %p IST')}")
