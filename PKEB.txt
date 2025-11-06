@@ -1,0 +1,30 @@
+📍 PKEB - Weather Forecast for Saturday, 17 May 2025
+=== Today's Weather Forecast ===
+Weather: Intermittent clouds
+Max Temp: 39.3°C
+Min Temp: 24.2°C
+
+--- Precipitation Info ---
+Rain Probability: 0%
+Precipitation Expected: No
+Rain Alert: No rain expected
+Rain Impact: None
+✅ Production will not be impacted.
+
+--- Additional Info ---
+Wind Speed: 0.63 km/h
+Visibility: 10.0 km
+
+📍 PKEB - Forecast for Sunday, 18 May 2025
+=== Tomorrow's Weather Forecast ===
+Max Temp: 39.3°C
+Min Temp: 24.2°C
+
+--- Precipitation Info ---
+Rain Probability: 3%
+Precipitation Expected: No
+Rain Alert: No rain expected
+Rain Impact: None
+✅ Production will not be impacted.
+
+-----------------------------------------------
