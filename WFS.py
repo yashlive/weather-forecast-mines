@@ -6,6 +6,145 @@ import collections
 import streamlit as st
 import pandas as pd
 
+# Use Inter font (import via Google Fonts for Streamlit custom CSS)
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
+
+body, .main-header, .sub-header, .mine-name, .card-title, .metric, .caption {
+    font-family: 'Inter', Arial, sans-serif !important;
+}
+.main-header {
+    font-size: 2.3rem;
+    font-weight: 900;
+    color: #04386f;
+    letter-spacing: -0.02em;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+.sub-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #18964d;
+    text-align: center;
+    margin-bottom: 2rem;
+    letter-spacing: -0.01em;
+}
+.sidebar .stSelectbox, .sidebar .stMultiSelect, .sidebar label {
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #34495e;
+}
+.card-title, .mine-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #071654;
+    margin-top: 1.1rem;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.01em;
+}
+.metric-card {
+    background-color: #f0f8ff;
+    border-radius: 0.7rem;
+    margin: 0.5rem 0;
+    padding: 1rem;
+}
+.alert-high {
+    background-color: #F44336;
+    border-radius: 0.7rem;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 1rem;
+}
+.alert-moderate {
+    background-color: #FFA500;
+    border-radius: 0.7rem;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 1rem;
+}
+.alert-low {
+    background-color: #07B34F;
+    border-radius: 0.7rem;
+    color: #1B2733 !important;
+    font-weight: 900;
+    padding: 1rem;
+}
+.slab-card {
+    background-color: #f7fcfe;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    font-size: 0.98rem;
+}
+.caption {
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-size: 0.95rem;
+    color: #8392A7;
+    margin-top: 1.5rem;
+    font-weight: 400;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.set_page_config(
+    page_title="Adani Natural Resources | Weather Intelligence Mining",
+    page_icon="⛏️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+OPENWEATHER_KEY = os.getenv("OPENWEATHER_API_KEY", "")
+OPENMETEO_KEY = os.getenv("OPENMETEO_API_KEY", "")
+TOMORROWIO_KEY = os.getenv("TOMORROW_API_KEY", "")
+ACCUWEATHER_KEY = os.getenv("ACCUWEATHER_API_KEY", "")
+
+MINE_LOCATIONS = [
+    {"name": "Suliyari", "lat": float(os.getenv("LAT1", 0)), "lon": float(os.getenv("LON1", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY1", "")},
+    {"name": "PKEB", "lat": float(os.getenv("LAT2", 0)), "lon": float(os.getenv("LON2", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY2", "")},
+    {"name": "Talabira", "lat": float(os.getenv("LAT3", 0)), "lon": float(os.getenv("LON3", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY3", "")},
+    {"name": "GPIII", "lat": float(os.getenv("LAT4", 0)), "lon": float(os.getenv("LON4", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY4", "")},
+    {"name": "Kurmitar", "lat": float(os.getenv("LAT5", 0)), "lon": float(os.getenv("LON5", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY5", "")},
+]
+
+IST = pytz.timezone('Asia/Kolkata')
+UTC = pytz.utc
+REQUEST_TIMEOUT = 10
+WIND_ALERT_THRESHOLD_KMH = 30
+VISIBILITY_ALERT_THRESHOLD_KM = 1.0
+MIN_RAINFALL_FOR_SLAB_DISPLAY_MM = 0.6
+MAX_SLABS_TO_SHOW = 6
+
+# --- Functions follow (same logic as previous script; omitted here for brevity) ---
+
+# Insert the fetch/aggregate/display functions from previous scripts, exactly as before.
+
+# --- Main dashboard UI ---
+st.markdown('<div class="main-header">Adani Natural Resources</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Weather Intelligence – Mining</div>', unsafe_allow_html=True)
+with st.sidebar:
+    st.header("Mines")
+    mine_names = [mine["name"] for mine in MINE_LOCATIONS]
+    selected_mines = st.multiselect("Select Mine", mine_names)  # NOTHING SELECTED BY DEFAULT
+    st.markdown("---")
+    st.info("Data from OpenWeatherMap, Open-Meteo, Tomorrow.io, and AccuWeather APIs.")
+
+if not selected_mines:
+    st.warning("Please select at least one mine to view the dashboard.")
+    st.stop()
+
+# From here, use the same cards/tabs/metrics/
+# -- use previous main script to display metrics, alerts, trends, just with these new colors/font!
+import os
+import requests
+from datetime import datetime, timedelta
+import pytz
+import collections
+import streamlit as st
+import pandas as pd
+
 # ---- UI Setup ----
 st.set_page_config(
     page_title="Adani Natural Resources | Weather Intelligence Mining",
