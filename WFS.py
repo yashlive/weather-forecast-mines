@@ -6,98 +6,100 @@ import collections
 import streamlit as st
 import pandas as pd
 
-# ---- Inter Font & Modern UI CSS ----
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
-
-body, .main-header, .sub-header, .mine-name, .card-title, .metric, .caption {
-    font-family: 'Inter', Arial, sans-serif !important;
-}
-.main-header {
-    font-size: 2.3rem;
-    font-weight: 900;
-    color: #04386f;
-    letter-spacing: -0.02em;
-    text-align: center;
-    margin-bottom: 0.5rem;
-}
-.sub-header {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #18964d;
-    text-align: center;
-    margin-bottom: 2rem;
-    letter-spacing: -0.01em;
-}
-.sidebar .stSelectbox, .sidebar .stMultiSelect, .sidebar label {
-    font-family: 'Inter', Arial, sans-serif !important;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #34495e;
-}
-.card-title, .mine-name {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #ff9800 !important;  /* <-- Bright orange for site name/mine */
-    margin-top: 1.1rem;
-    margin-bottom: 0.6rem;
-    letter-spacing: 0.01em;
-    background: #fff;
-    border-radius: 0.7rem;
-    padding: 0.15rem 0.4rem;
-}
-.metric-card {
-    background-color: #f0f8ff;
-    border-radius: 0.7rem;
-    margin: 0.5rem 0;
-    padding: 1rem;
-}
-.alert-high {
-    background-color: #F44336;
-    border-radius: 0.7rem;
-    color: #ffffff;
-    font-weight: 600;
-    padding: 1rem;
-}
-.alert-moderate {
-    background-color: #FFA500;
-    border-radius: 0.7rem;
-    color: #ffffff;
-    font-weight: 600;
-    padding: 1rem;
-}
-.alert-low {
-    background-color: #07B34F;
-    border-radius: 0.7rem;
-    color: #1B2733 !important;
-    font-weight: 900;
-    padding: 1rem;
-}
-.slab-card {
-    background-color: #f7fcfe;
-    border: 1px solid #e0e0e0;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    font-size: 0.98rem;
-}
-.caption {
-    font-family: 'Inter', Arial, sans-serif !important;
-    font-size: 0.95rem;
-    color: #8392A7;
-    margin-top: 1.5rem;
-    font-weight: 400;
-}
-</style>
-""", unsafe_allow_html=True)
-
 st.set_page_config(
     page_title="Adani Natural Resources | Weather Intelligence Mining",
     page_icon="⛏️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# --- Theme switcher ---
+with st.sidebar:
+    mode = st.radio("Theme", ["🌞 Light mode", "🌙 Dark mode"], index=0)
+
+LIGHT_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
+body, .main-header, .sub-header, .mine-name, .card-title, .metric, .caption {
+    font-family: 'Inter', Arial, sans-serif !important;
+}
+body { background: #FAFBFF; }
+.main-header {
+    font-size: 2.3rem; font-weight:900;
+    color: #071654; background: #fff;
+    letter-spacing: -0.02em; text-align: center; margin-bottom: 0.5rem;
+    border-radius: 1.1rem; box-shadow:0 2px 8px #e0e7ef28;
+    padding-top:.6rem; padding-bottom:.25rem;
+}
+.sub-header {
+    font-size: 1.1rem; font-weight:600; color: #18964d;
+    text-align: center; margin-bottom: 2rem; background:#fff;
+    padding:.25rem 0 .09rem 0; border-radius:.9rem;
+    letter-spacing: -0.01em;
+}
+.mine-name, .card-title {
+    font-size: 1.15rem; font-weight: 800;
+    color: #ff9800 !important; background: #fff;
+    border-radius: 0.7rem; padding: 0.15rem 0.4rem; margin-top: 1.1rem; margin-bottom: 0.6rem;
+    letter-spacing: 0.01em;
+}
+.metric-card {
+    background-color: #f0f8ff;
+    border-radius: 0.7rem; margin: 0.5rem 0; padding: 1rem;
+}
+.alert-high { background-color: #F44336; border-radius: 0.7rem; color: #ffffff; font-weight: 600; padding: 1rem;}
+.alert-moderate { background-color: #FFA500; border-radius: 0.7rem; color: #ffffff; font-weight: 600; padding: 1rem;}
+.alert-low { background-color: #07B34F; border-radius: 0.7rem; color: #1B2733 !important; font-weight: 900; padding: 1rem;}
+.slab-card { background-color: #f7fcfe; border: 1px solid #e0e0e0; border-radius: 0.5rem; padding: 1rem; margin: 0.5rem 0;
+    font-size: 0.98rem;}
+.caption { font-family: 'Inter', Arial, sans-serif !important; font-size: 0.95rem; color: #8392A7; margin-top: 1.5rem; font-weight: 400;}
+</style>
+"""
+
+DARK_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
+body, .main-header, .sub-header, .mine-name, .card-title, .metric, .caption {
+    font-family: 'Inter', Arial, sans-serif !important;
+}
+body { background: #181c24 !important; }
+.main-header {
+    font-size: 2.3rem; font-weight:900;
+    color: #ffd86a; background: #23242a;
+    letter-spacing: -0.02em; text-align: center; margin-bottom: 0.5rem;
+    border-radius: 1.1rem; box-shadow:0 2px 8px #16141648;
+    padding-top:.6rem; padding-bottom:.25rem;
+}
+.sub-header {
+    font-size: 1.1rem; font-weight:600; color: #66faff;
+    text-align: center; margin-bottom: 2rem; background:#23242a;
+    padding:.25rem 0 .09rem 0; border-radius:.9rem;
+    letter-spacing: -0.01em;
+}
+.mine-name, .card-title {
+    font-size: 1.15rem; font-weight: 800;
+    color: #ffc400 !important; background: #23242a;
+    border-radius: 0.7rem; padding: 0.15rem 0.4rem; margin-top: 1.1rem; margin-bottom: 0.6rem;
+    letter-spacing: 0.01em;
+}
+.metric-card {
+    background-color: #23242a;
+    border-radius: 0.7rem; margin: 0.5rem 0; padding: 1rem; color: #fbead7;
+}
+.alert-high { background-color: #e53935; border-radius: 0.7rem; color: #fffefe; font-weight: 600; padding: 1rem;}
+.alert-moderate { background-color: #ff9000; border-radius: 0.7rem; color: #fff; font-weight: 600; padding: 1rem;}
+.alert-low { background-color: #57e39d; border-radius: 0.7rem; color: #181c24 !important; font-weight: 900; padding: 1rem;}
+.slab-card { background-color: #161928; border: 1px solid #2d3649; border-radius: 0.5rem; padding: 1rem; margin: 0.5rem 0;
+    color: #fff3;
+    font-size: 0.98rem;}
+.caption { font-family: 'Inter', Arial, sans-serif !important; font-size: 0.95rem; color: #ababab; margin-top: 1.5rem; font-weight: 400;}
+</style>
+"""
+
+if mode == "🌙 Dark mode":
+    st.markdown(DARK_CSS, unsafe_allow_html=True)
+else:
+    st.markdown(LIGHT_CSS, unsafe_allow_html=True)
 
 OPENWEATHER_KEY = os.getenv("OPENWEATHER_API_KEY", "")
 OPENMETEO_KEY = os.getenv("OPENMETEO_API_KEY", "")
