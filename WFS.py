@@ -6,7 +6,7 @@ import collections
 import streamlit as st
 import pandas as pd
 
-# Use Inter font (import via Google Fonts for Streamlit custom CSS)
+# ---- Inter Font & Modern UI CSS ----
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
@@ -117,130 +117,6 @@ VISIBILITY_ALERT_THRESHOLD_KM = 1.0
 MIN_RAINFALL_FOR_SLAB_DISPLAY_MM = 0.6
 MAX_SLABS_TO_SHOW = 6
 
-# --- Functions follow (same logic as previous script; omitted here for brevity) ---
-
-# Insert the fetch/aggregate/display functions from previous scripts, exactly as before.
-
-# --- Main dashboard UI ---
-st.markdown('<div class="main-header">Adani Natural Resources</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Weather Intelligence – Mining</div>', unsafe_allow_html=True)
-with st.sidebar:
-    st.header("Mines")
-    mine_names = [mine["name"] for mine in MINE_LOCATIONS]
-    selected_mines = st.multiselect("Select Mine", mine_names)  # NOTHING SELECTED BY DEFAULT
-    st.markdown("---")
-    st.info("Data from OpenWeatherMap, Open-Meteo, Tomorrow.io, and AccuWeather APIs.")
-
-if not selected_mines:
-    st.warning("Please select at least one mine to view the dashboard.")
-    st.stop()
-
-# From here, use the same cards/tabs/metrics/
-# -- use previous main script to display metrics, alerts, trends, just with these new colors/font!
-import os
-import requests
-from datetime import datetime, timedelta
-import pytz
-import collections
-import streamlit as st
-import pandas as pd
-
-# ---- UI Setup ----
-st.set_page_config(
-    page_title="Adani Natural Resources | Weather Intelligence Mining",
-    page_icon="⛏️",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-st.markdown(
-    """
-    <style>
-    .main-header {
-        font-size: 2.3rem;
-        font-weight: bold;
-        color: #04386f;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-    .sub-header {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #18964d;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-    .mine-name {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #071654;
-        margin-top: 1.2rem;
-        margin-bottom: 0.6rem;
-    }
-    .metric-card {
-        background-color: #f0f8ff;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin: 0.5rem 0;
-    }
-    .alert-high {
-        background-color: #fde0e6;
-        border-left: 5px solid #f44336;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        color: #7a0101;
-        font-weight: 600;
-    }
-    .alert-moderate {
-        background-color: #fff4de;
-        border-left: 5px solid #ffa500;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        color: #7c4106;
-        font-weight: 600;
-    }
-    .alert-low {
-        background-color: #e0f4e7;
-        border-left: 5px solid #07b34f;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        color: #074124 !important;
-        font-weight: 600;
-    }
-    .slab-card {
-        background-color: #f7fcfe;
-        border: 1px solid #e0e0e0;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        font-size: 0.98rem;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# --- Load keys and mine locations from environment (Streamlit uses TOML secrets as env vars)
-OPENWEATHER_KEY = os.getenv("OPENWEATHER_API_KEY", "")
-OPENMETEO_KEY = os.getenv("OPENMETEO_API_KEY", "")
-TOMORROWIO_KEY = os.getenv("TOMORROW_API_KEY", "")
-ACCUWEATHER_KEY = os.getenv("ACCUWEATHER_API_KEY", "")
-
-MINE_LOCATIONS = [
-    {"name": "Suliyari",   "lat": float(os.getenv("LAT1", 0)), "lon": float(os.getenv("LON1", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY1", "")},
-    {"name": "PKEB",       "lat": float(os.getenv("LAT2", 0)), "lon": float(os.getenv("LON2", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY2", "")},
-    {"name": "Talabira",   "lat": float(os.getenv("LAT3", 0)), "lon": float(os.getenv("LON3", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY3", "")},
-    {"name": "GPIII",      "lat": float(os.getenv("LAT4", 0)), "lon": float(os.getenv("LON4", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY4", "")},
-    {"name": "Kurmitar",   "lat": float(os.getenv("LAT5", 0)), "lon": float(os.getenv("LON5", 0)), "accuweather_location_key": os.getenv("LOCATION_KEY5", "")},
-]
-
-IST = pytz.timezone('Asia/Kolkata')
-UTC = pytz.utc
-REQUEST_TIMEOUT = 10
-WIND_ALERT_THRESHOLD_KMH = 30
-VISIBILITY_ALERT_THRESHOLD_KM = 1.0
-MIN_RAINFALL_FOR_SLAB_DISPLAY_MM = 0.6
-MAX_SLABS_TO_SHOW = 6
-
 def get_rain_type(mm, is_2hr_slab=False, overall_description=None):
     if is_2hr_slab:
         if mm >= 8: return "very heavy rain (torrential)"
@@ -274,16 +150,11 @@ def get_production_status(total_rain_mm, slabs):
     elif total_rain_mm >= 5:
         impact_level = "Moderate"
         status_msg = "Proceed with caution, production may be impacted due to moderate rainfall."
-    has_lightning = False
-    has_high_wind = False
-    has_low_visibility = False
+    has_lightning, has_high_wind, has_low_visibility = False, False, False
     for slab in slabs:
-        if slab['lightning']:
-            has_lightning = True
-        if slab['wind_speed'] >= WIND_ALERT_THRESHOLD_KMH:
-            has_high_wind = True
-        if slab['visibility_km'] <= VISIBILITY_ALERT_THRESHOLD_KM:
-            has_low_visibility = True
+        if slab['lightning']: has_lightning = True
+        if slab['wind_speed'] >= WIND_ALERT_THRESHOLD_KMH: has_high_wind = True
+        if slab['visibility_km'] <= VISIBILITY_ALERT_THRESHOLD_KM: has_low_visibility = True
     if has_lightning:
         if impact_level != "High":
             impact_level = "High"
@@ -311,8 +182,7 @@ def utc_to_ist(utc_dt):
 
 @st.cache_data(ttl=1800)
 def fetch_openweather_forecast(lat, lon):
-    if not OPENWEATHER_KEY:
-        return None
+    if not OPENWEATHER_KEY: return None
     try:
         url = (f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}"
                f"&units=metric&exclude=minutely,daily,alerts&appid={OPENWEATHER_KEY}")
@@ -336,8 +206,7 @@ def fetch_open_meteo_forecast(lat, lon):
 
 @st.cache_data(ttl=1800)
 def fetch_tomorrow_io_forecast(lat, lon):
-    if not TOMORROWIO_KEY:
-        return None
+    if not TOMORROWIO_KEY: return None
     try:
         url = (f"https://api.tomorrow.io/v4/weather/forecast?location={lat},{lon}"
                f"&units=metric&apikey={TOMORROWIO_KEY}")
@@ -350,11 +219,8 @@ def fetch_tomorrow_io_forecast(lat, lon):
 def get_daily_summary_and_slabs(hourly_data_list):
     if not hourly_data_list:
         return {"max_temp": "N/A", "min_temp": "N/A", "total_rain": 0, "total_rain_pop": 0, "weather_desc": "N/A", "slabs": []}
-    max_temp = float("-inf")
-    min_temp = float("inf")
-    total_rain_overall = 0
-    all_weather_descs = []
-    all_hourly_pops = []
+    max_temp, min_temp, total_rain_overall = float("-inf"), float("inf"), 0
+    all_weather_descs, all_hourly_pops = [], []
     SLAB_DEFINITIONS = [
         (0, 2, "12:30 AM to 02:30 AM"), (2, 4, "02:30 AM to 04:30 AM"),
         (4, 6, "04:30 AM to 06:30 AM"), (6, 8, "06:30 AM to 08:30 AM"),
@@ -373,25 +239,24 @@ def get_daily_summary_and_slabs(hourly_data_list):
         total_rain_overall += data['rain_mm']
         all_weather_descs.append(data['description'])
         all_hourly_pops.append(data['pop'])
-        hour_in_day = dt_ist.hour
-        slab_key = None
+        hour_in_day, slab_key = dt_ist.hour, None
         for start_h, end_h, display_name in SLAB_DEFINITIONS:
             if start_h == 22 and end_h == 2:
                 if hour_in_day == 22 or hour_in_day == 23:
                     slab_key = (start_h, end_h, display_name)
                     break
-            elif start_h < end_h:
-                if hour_in_day >= start_h and hour_in_day < end_h:
-                    slab_key = (start_h, end_h, display_name)
-                    break
+            elif start_h < end_h and start_h <= hour_in_day < end_h:
+                slab_key = (start_h, end_h, display_name)
+                break
         if slab_key:
-            slabs_data_raw[slab_key]["rain_mm"] += data['rain_mm']
-            slabs_data_raw[slab_key]["pop"].append(data['pop'])
-            slabs_data_raw[slab_key]["wind_speed"].append(data['wind_speed'])
-            slabs_data_raw[slab_key]["visibility_km"].append(data.get('visibility_km', 10))
-            slabs_data_raw[slab_key]["descs"].append(data['description'])
-            slabs_data_raw[slab_key]["lightning"].append(data['lightning'])
-            slabs_data_raw[slab_key]["hours_covered"] += 1
+            raw = slabs_data_raw[slab_key]
+            raw["rain_mm"] += data['rain_mm']
+            raw["pop"].append(data['pop'])
+            raw["wind_speed"].append(data['wind_speed'])
+            raw["visibility_km"].append(data.get('visibility_km', 10))
+            raw["descs"].append(data['description'])
+            raw["lightning"].append(data['lightning'])
+            raw["hours_covered"] += 1
     candidate_slabs = []
     for slab_key, slab_data in slabs_data_raw.items():
         if slab_data["hours_covered"] > 0:
@@ -413,14 +278,12 @@ def get_daily_summary_and_slabs(hourly_data_list):
                     "description": main_desc
                 })
     candidate_slabs.sort(key=lambda x: (-x["sort_key"], x["time_range"]))
-    final_slabs = []
-    seen_time_ranges = set()
+    final_slabs, seen_time_ranges = [], set()
     for slab in candidate_slabs:
         if slab["time_range"] not in seen_time_ranges:
             final_slabs.append(slab)
             seen_time_ranges.add(slab["time_range"])
-            if len(final_slabs) >= MAX_SLABS_TO_SHOW:
-                break
+            if len(final_slabs) >= MAX_SLABS_TO_SHOW: break
     slab_order_map = {s[2]: idx for idx, s in enumerate(SLAB_DEFINITIONS)}
     final_slabs.sort(key=lambda x: slab_order_map.get(x["time_range"], float('inf')))
     overall_raw_desc = collections.Counter(all_weather_descs).most_common(1)[0][0] if all_weather_descs else "N/A"
@@ -439,18 +302,15 @@ def fetch_consolidated_forecast(lat, lon):
     ow_data = fetch_openweather_forecast(lat, lon)
     om_data = fetch_open_meteo_forecast(lat, lon)
     tm_data = fetch_tomorrow_io_forecast(lat, lon)
-    if not any([ow_data, om_data, tm_data]):
-        return None
+    if not any([ow_data, om_data, tm_data]): return None
     hourly_consolidated = {}
-    # OpenWeatherMap
     if ow_data and "hourly" in ow_data:
         for entry in ow_data["hourly"]:
             dt_utc = datetime.fromtimestamp(entry["dt"], tz=UTC)
             dt_ist = utc_to_ist(dt_utc)
             hour_key = dt_ist.replace(minute=0, second=0, microsecond=0)
             if hour_key < datetime.now(IST).replace(minute=0, second=0, microsecond=0) - timedelta(hours=1) or \
-               hour_key > datetime.now(IST).replace(minute=0, second=0, microsecond=0) + timedelta(hours=48):
-                continue
+               hour_key > datetime.now(IST).replace(minute=0, second=0, microsecond=0) + timedelta(hours=48): continue
             hourly_consolidated.setdefault(hour_key, {
                 'temp': [], 'rain_mm': [], 'pop': [], 'wind_speed': [],
                 'visibility_km': [], 'description': [], 'lightning': []
@@ -464,14 +324,10 @@ def fetch_consolidated_forecast(lat, lon):
             hourly_consolidated[hour_key]['visibility_km'].append(entry.get("visibility", 10000) / 1000)
             if entry.get("weather"):
                 hourly_consolidated[hour_key]['description'].append(entry["weather"][0]["description"])
-                if 200 <= entry["weather"][0]["id"] < 300:
-                    hourly_consolidated[hour_key]['lightning'].append(True)
-                else:
-                    hourly_consolidated[hour_key]['lightning'].append(False)
+                hourly_consolidated[hour_key]['lightning'].append(200 <= entry["weather"][0]["id"] < 300)
             else:
                 hourly_consolidated[hour_key]['description'].append("N/A")
                 hourly_consolidated[hour_key]['lightning'].append(False)
-    # Open-Meteo
     if om_data and "hourly" in om_data:
         times = om_data["hourly"]["time"]
         temps = om_data["hourly"]["temperature_2m"]
@@ -484,8 +340,7 @@ def fetch_consolidated_forecast(lat, lon):
             dt_ist = datetime.fromisoformat(time_str).replace(tzinfo=IST)
             hour_key = dt_ist.replace(minute=0, second=0, microsecond=0)
             if hour_key < datetime.now(IST).replace(minute=0, second=0, microsecond=0) - timedelta(hours=1) or \
-               hour_key > datetime.now(IST).replace(minute=0, second=0, microsecond=0) + timedelta(hours=48):
-                continue
+               hour_key > datetime.now(IST).replace(minute=0, second=0, microsecond=0) + timedelta(hours=48): continue
             hourly_consolidated.setdefault(hour_key, {
                 'temp': [], 'rain_mm': [], 'pop': [], 'wind_speed': [],
                 'visibility_km': [], 'description': [], 'lightning': []
@@ -496,11 +351,7 @@ def fetch_consolidated_forecast(lat, lon):
             hourly_consolidated[hour_key]['wind_speed'].append(wind_speeds[i])
             hourly_consolidated[hour_key]['visibility_km'].append(visibilities[i]/1000 if visibilities else 10)
             hourly_consolidated[hour_key]['description'].append("OpenMeteo")
-            if weather_codes[i] in [95, 96, 99]:
-                hourly_consolidated[hour_key]['lightning'].append(True)
-            else:
-                hourly_consolidated[hour_key]['lightning'].append(False)
-    # Tomorrow.io
+            hourly_consolidated[hour_key]['lightning'].append(weather_codes[i] in [95, 96, 99])
     if tm_data and "timelines" in tm_data and "hourly" in tm_data["timelines"]:
         for interval in tm_data["timelines"]["hourly"]:
             dt_iso_str = interval["time"]
@@ -509,8 +360,7 @@ def fetch_consolidated_forecast(lat, lon):
             dt_ist = dt_utc_aware.astimezone(IST)
             hour_key = dt_ist.replace(minute=0, second=0, microsecond=0)
             if hour_key < datetime.now(IST).replace(minute=0, second=0, microsecond=0) - timedelta(hours=1) or \
-               hour_key > datetime.now(IST).replace(minute=0, second=0, microsecond=0) + timedelta(hours=48):
-                continue
+               hour_key > datetime.now(IST).replace(minute=0, second=0, microsecond=0) + timedelta(hours=48): continue
             values = interval["values"]
             hourly_consolidated.setdefault(hour_key, {
                 'temp': [], 'rain_mm': [], 'pop': [], 'wind_speed': [],
@@ -548,13 +398,13 @@ def fetch_consolidated_forecast(lat, lon):
         forecast_by_day[dt_ist.date()].append((dt_ist, data))
     return forecast_by_day
 
-# ---- MAIN STREAMLIT ----
+# ---- MAIN STREAMLIT SECTION ----
 st.markdown('<div class="main-header">Adani Natural Resources</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Weather Intelligence – Mining</div>', unsafe_allow_html=True)
 with st.sidebar:
     st.header("Mines")
     mine_names = [mine["name"] for mine in MINE_LOCATIONS]
-    selected_mines = st.multiselect("Select Mine", mine_names, default=mine_names)
+    selected_mines = st.multiselect("Select Mine", mine_names)  # Nothing selected by default
     st.markdown("---")
     st.info("Data from OpenWeatherMap, Open-Meteo, Tomorrow.io, and AccuWeather APIs.")
 
@@ -612,7 +462,7 @@ for mine_name in selected_mines:
                     <div class="slab-card">
                         <strong>{slab['time_range']}</strong><br>
                         🌧️ {slab['mm']} mm ({slab['type']}) - {slab['prob']}% probability<br>
-                        <span style="color: {'#f44336' if alerts else '#07b34f'};">{alert_str}</span>
+                        <span style="color: {'#F44336' if alerts else '#07B34F'};">{alert_str}</span>
                     </div>
                     """, unsafe_allow_html=True)
             else:
