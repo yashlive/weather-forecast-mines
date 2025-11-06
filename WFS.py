@@ -13,13 +13,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---- PURE LIGHT MODE, WHITE BACKGROUND, CLEAN HEADERS ----
+# ---- FORCE FULL PAGE WHITE LIGHT MODE ----
 st.markdown("""
 <style>
+body, .stApp {
+    background: #fff !important;
+}
 @import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
 body {
     font-family: 'Inter', Arial, sans-serif !important;
-    background: #fff !important; color: #071654 !important;
+    color: #071654 !important;
 }
 .main-header {
     font-size: 2.3rem; font-weight:900; color: #071654; letter-spacing: -0.02em;
