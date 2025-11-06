@@ -6,100 +6,95 @@ import collections
 import streamlit as st
 import pandas as pd
 
+# ---- Inter Font & Modern UI CSS ----
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
+
+body, .main-header, .sub-header, .mine-name, .card-title, .metric, .caption {
+    font-family: 'Inter', Arial, sans-serif !important;
+}
+.main-header {
+    font-size: 2.3rem;
+    font-weight: 900;
+    color: #04386f;
+    letter-spacing: -0.02em;
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+.sub-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #18964d;
+    text-align: center;
+    margin-bottom: 2rem;
+    letter-spacing: -0.01em;
+}
+.sidebar .stSelectbox, .sidebar .stMultiSelect, .sidebar label {
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #34495e;
+}
+.card-title, .mine-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #071654;
+    margin-top: 1.1rem;
+    margin-bottom: 0.6rem;
+    letter-spacing: 0.01em;
+}
+.metric-card {
+    background-color: #f0f8ff;
+    border-radius: 0.7rem;
+    margin: 0.5rem 0;
+    padding: 1rem;
+}
+.alert-high {
+    background-color: #F44336;
+    border-radius: 0.7rem;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 1rem;
+}
+.alert-moderate {
+    background-color: #FFA500;
+    border-radius: 0.7rem;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 1rem;
+}
+.alert-low {
+    background-color: #07B34F;
+    border-radius: 0.7rem;
+    color: #1B2733 !important;
+    font-weight: 900;
+    padding: 1rem;
+}
+.slab-card {
+    background-color: #f7fcfe;
+    border: 1px solid #e0e0e0;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    font-size: 0.98rem;
+}
+.caption {
+    font-family: 'Inter', Arial, sans-serif !important;
+    font-size: 0.95rem;
+    color: #8392A7;
+    margin-top: 1.5rem;
+    font-weight: 400;
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.set_page_config(
     page_title="Adani Natural Resources | Weather Intelligence Mining",
     page_icon="⛏️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# --- Theme switcher ---
-with st.sidebar:
-    mode = st.radio("Theme", ["🌞 Light mode", "🌙 Dark mode"], index=0)
-
-LIGHT_CSS = """
-<style>
-@import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
-body, .main-header, .sub-header, .mine-name, .card-title, .metric, .caption {
-    font-family: 'Inter', Arial, sans-serif !important;
-}
-body { background: #FAFBFF; }
-.main-header {
-    font-size: 2.3rem; font-weight:900;
-    color: #071654; background: #fff;
-    letter-spacing: -0.02em; text-align: center; margin-bottom: 0.5rem;
-    border-radius: 1.1rem; box-shadow:0 2px 8px #e0e7ef28;
-    padding-top:.6rem; padding-bottom:.25rem;
-}
-.sub-header {
-    font-size: 1.1rem; font-weight:600; color: #18964d;
-    text-align: center; margin-bottom: 2rem; background:#fff;
-    padding:.25rem 0 .09rem 0; border-radius:.9rem;
-    letter-spacing: -0.01em;
-}
-.mine-name, .card-title {
-    font-size: 1.15rem; font-weight: 800;
-    color: #ff9800 !important; background: #fff;
-    border-radius: 0.7rem; padding: 0.15rem 0.4rem; margin-top: 1.1rem; margin-bottom: 0.6rem;
-    letter-spacing: 0.01em;
-}
-.metric-card {
-    background-color: #f0f8ff;
-    border-radius: 0.7rem; margin: 0.5rem 0; padding: 1rem;
-}
-.alert-high { background-color: #F44336; border-radius: 0.7rem; color: #ffffff; font-weight: 600; padding: 1rem;}
-.alert-moderate { background-color: #FFA500; border-radius: 0.7rem; color: #ffffff; font-weight: 600; padding: 1rem;}
-.alert-low { background-color: #07B34F; border-radius: 0.7rem; color: #1B2733 !important; font-weight: 900; padding: 1rem;}
-.slab-card { background-color: #f7fcfe; border: 1px solid #e0e0e0; border-radius: 0.5rem; padding: 1rem; margin: 0.5rem 0;
-    font-size: 0.98rem;}
-.caption { font-family: 'Inter', Arial, sans-serif !important; font-size: 0.95rem; color: #8392A7; margin-top: 1.5rem; font-weight: 400;}
-</style>
-"""
-
-DARK_CSS = """
-<style>
-@import url('https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,900&display=swap');
-body, .main-header, .sub-header, .mine-name, .card-title, .metric, .caption {
-    font-family: 'Inter', Arial, sans-serif !important;
-}
-body { background: #181c24 !important; }
-.main-header {
-    font-size: 2.3rem; font-weight:900;
-    color: #ffd86a; background: #23242a;
-    letter-spacing: -0.02em; text-align: center; margin-bottom: 0.5rem;
-    border-radius: 1.1rem; box-shadow:0 2px 8px #16141648;
-    padding-top:.6rem; padding-bottom:.25rem;
-}
-.sub-header {
-    font-size: 1.1rem; font-weight:600; color: #66faff;
-    text-align: center; margin-bottom: 2rem; background:#23242a;
-    padding:.25rem 0 .09rem 0; border-radius:.9rem;
-    letter-spacing: -0.01em;
-}
-.mine-name, .card-title {
-    font-size: 1.15rem; font-weight: 800;
-    color: #ffc400 !important; background: #23242a;
-    border-radius: 0.7rem; padding: 0.15rem 0.4rem; margin-top: 1.1rem; margin-bottom: 0.6rem;
-    letter-spacing: 0.01em;
-}
-.metric-card {
-    background-color: #23242a;
-    border-radius: 0.7rem; margin: 0.5rem 0; padding: 1rem; color: #fbead7;
-}
-.alert-high { background-color: #e53935; border-radius: 0.7rem; color: #fffefe; font-weight: 600; padding: 1rem;}
-.alert-moderate { background-color: #ff9000; border-radius: 0.7rem; color: #fff; font-weight: 600; padding: 1rem;}
-.alert-low { background-color: #57e39d; border-radius: 0.7rem; color: #181c24 !important; font-weight: 900; padding: 1rem;}
-.slab-card { background-color: #161928; border: 1px solid #2d3649; border-radius: 0.5rem; padding: 1rem; margin: 0.5rem 0;
-    color: #fff3;
-    font-size: 0.98rem;}
-.caption { font-family: 'Inter', Arial, sans-serif !important; font-size: 0.95rem; color: #ababab; margin-top: 1.5rem; font-weight: 400;}
-</style>
-"""
-
-if mode == "🌙 Dark mode":
-    st.markdown(DARK_CSS, unsafe_allow_html=True)
-else:
-    st.markdown(LIGHT_CSS, unsafe_allow_html=True)
 
 OPENWEATHER_KEY = os.getenv("OPENWEATHER_API_KEY", "")
 OPENMETEO_KEY = os.getenv("OPENMETEO_API_KEY", "")
@@ -147,15 +142,6 @@ def get_rain_type(mm, is_2hr_slab=False, overall_description=None):
             return "No Rain ☀️"
 
 def get_production_status(total_rain_mm, slabs):
-    # If absolutely NO rain/precip etc, and NO alert slabs, show totally clear status
-    no_rain = (total_rain_mm == 0)
-    no_alerts = True
-    for slab in slabs:
-        if slab['mm'] > 0 or slab['lightning'] or slab['wind_speed'] >= WIND_ALERT_THRESHOLD_KMH or slab['visibility_km'] <= VISIBILITY_ALERT_THRESHOLD_KM:
-            no_alerts = False
-            break
-    if no_rain and no_alerts:
-        return "Low", "Clear weather. No operational hazard."
     impact_level = "Low"
     status_msg = "Normal operations, minor impact possible"
     if total_rain_mm >= 15:
@@ -480,16 +466,12 @@ for mine_name in selected_mines:
             day_hourly_data = forecast_by_day[target_day]
             day_summary = get_daily_summary_and_slabs(day_hourly_data)
             st.markdown(f"### {target_day.strftime('%d %B, %Y')}")
-            col1, col2, col3, col4, col5, col6 = st.columns(6)
+            col1, col2, col3, col4, col5 = st.columns(5)
             with col1: st.metric("Weather", day_summary['weather_desc'])
             with col2: st.metric("Max Temp", f"{day_summary['max_temp']}°C")
             with col3: st.metric("Min Temp", f"{day_summary['min_temp']}°C")
             with col4: st.metric("Total Rainfall", f"{day_summary['total_rain']} mm")
             with col5: st.metric("Rain Probability", f"{day_summary['total_rain_pop']}%")
-            # Add visibility as column 6
-            with col6:
-                vis_val = int(day_hourly_data[0][1].get("visibility_km", 0)) if day_hourly_data else "--"
-                st.metric("Visibility", f"{vis_val} km")
             impact_level, status_msg = get_production_status(day_summary['total_rain'], day_summary['slabs'])
             if impact_level == "High":
                 st.markdown(f'<div class="alert-high"><strong>🚨 High Impact:</strong> {status_msg}</div>', unsafe_allow_html=True)
