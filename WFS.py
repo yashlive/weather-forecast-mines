@@ -39,10 +39,13 @@ body, .main-header, .sub-header, .mine-name, .card-title, .metric, .caption {
 .card-title, .mine-name {
     font-size: 1.15rem;
     font-weight: 800;
-    color: #071654;
+    color: #ff9800 !important;  /* <-- Bright orange for site name/mine */
     margin-top: 1.1rem;
     margin-bottom: 0.6rem;
     letter-spacing: 0.01em;
+    background: #fff;
+    border-radius: 0.7rem;
+    padding: 0.15rem 0.4rem;
 }
 .metric-card {
     background-color: #f0f8ff;
@@ -142,6 +145,15 @@ def get_rain_type(mm, is_2hr_slab=False, overall_description=None):
             return "No Rain ☀️"
 
 def get_production_status(total_rain_mm, slabs):
+    # If absolutely NO rain/precip etc, and NO alert slabs, show totally clear status
+    no_rain = (total_rain_mm == 0)
+    no_alerts = True
+    for slab in slabs:
+        if slab['mm'] > 0 or slab['lightning'] or slab['wind_speed'] >= WIND_ALERT_THRESHOLD_KMH or slab['visibility_km'] <= VISIBILITY_ALERT_THRESHOLD_KM:
+            no_alerts = False
+            break
+    if no_rain and no_alerts:
+        return "Low", "Clear weather. No operational hazard."
     impact_level = "Low"
     status_msg = "Normal operations, minor impact possible"
     if total_rain_mm >= 15:
@@ -466,12 +478,16 @@ for mine_name in selected_mines:
             day_hourly_data = forecast_by_day[target_day]
             day_summary = get_daily_summary_and_slabs(day_hourly_data)
             st.markdown(f"### {target_day.strftime('%d %B, %Y')}")
-            col1, col2, col3, col4, col5 = st.columns(5)
+            col1, col2, col3, col4, col5, col6 = st.columns(6)
             with col1: st.metric("Weather", day_summary['weather_desc'])
             with col2: st.metric("Max Temp", f"{day_summary['max_temp']}°C")
             with col3: st.metric("Min Temp", f"{day_summary['min_temp']}°C")
             with col4: st.metric("Total Rainfall", f"{day_summary['total_rain']} mm")
             with col5: st.metric("Rain Probability", f"{day_summary['total_rain_pop']}%")
+            # Add visibility as column 6
+            with col6:
+                vis_val = int(day_hourly_data[0][1].get("visibility_km", 0)) if day_hourly_data else "--"
+                st.metric("Visibility", f"{vis_val} km")
             impact_level, status_msg = get_production_status(day_summary['total_rain'], day_summary['slabs'])
             if impact_level == "High":
                 st.markdown(f'<div class="alert-high"><strong>🚨 High Impact:</strong> {status_msg}</div>', unsafe_allow_html=True)
