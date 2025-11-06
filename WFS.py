@@ -22,7 +22,7 @@ body {
     background: #fff !important; color: #071654 !important;
 }
 .main-header {
-    font-size: 2.3rem; font-weight:900; color: #071654; letter-spacing: -0.02em;
+    font-size: 2.3rem; font-weight:900; color: #ffffff; letter-spacing: -0.02em;
     text-align: center; margin-bottom: 0.65rem; background: none;
 }
 .sub-header {
