@@ -424,6 +424,14 @@ for mine_name in selected_mines:
         st.error("❌ Unable to fetch forecast data. Please check API keys and network connectivity.")
         continue
     current_date_ist = datetime.now(IST).date()
+        day_hourly_data = forecast_by_day.get(current_date_ist)
+    if day_hourly_data:
+        day_summary = get_daily_summary_and_slabs(day_hourly_data)
+        impact_level, status_msg = get_production_status(day_summary['total_rain'], day_summary['slabs'])
+        if impact_level == "High":
+            st.error(f"🚨 ALERT for {mine_name}: {status_msg}")
+        elif impact_level == "Moderate":
+            st.warning(f"⚠️ {mine_name}: {status_msg}")
     tab1, tab2 = st.tabs(["📅 Today", "📅 Tomorrow"])
     for tab, day_offset in [(tab1, 0), (tab2, 1)]:
         target_day = current_date_ist + timedelta(days=day_offset)
