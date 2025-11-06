@@ -398,7 +398,7 @@ def fetch_consolidated_forecast(lat, lon):
         forecast_by_day[dt_ist.date()].append((dt_ist, data))
     return forecast_by_day
 
-# ---- MAIN STREAMLIT SECTION ----
+# ---- DASHBOARD UI ----
 st.markdown('<div class="main-header">Adani Natural Resources</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Weather Intelligence – Mining</div>', unsafe_allow_html=True)
 with st.sidebar:
@@ -424,14 +424,38 @@ for mine_name in selected_mines:
         st.error("❌ Unable to fetch forecast data. Please check API keys and network connectivity.")
         continue
     current_date_ist = datetime.now(IST).date()
-        day_hourly_data = forecast_by_day.get(current_date_ist)
+    
+    # -- ALERTS LOGIC BLOCK (TOP OF MINE SECTION, before tabs) --
+    day_hourly_data = forecast_by_day.get(current_date_ist)
     if day_hourly_data:
         day_summary = get_daily_summary_and_slabs(day_hourly_data)
         impact_level, status_msg = get_production_status(day_summary['total_rain'], day_summary['slabs'])
+        # Production impact level alert
         if impact_level == "High":
-            st.error(f"🚨 ALERT for {mine_name}: {status_msg}")
+            st.error(f"🚩 **ALERT**: {mine_name} expects **HIGH impact** — {status_msg}")
         elif impact_level == "Moderate":
             st.warning(f"⚠️ {mine_name}: {status_msg}")
+
+        # Per-slab detailed alerts
+        slab_alerts = []
+        for slab in day_summary['slabs']:
+            details = []
+            if slab['lightning']:
+                details.append("⚡ Lightning")
+            if slab['wind_speed'] >= WIND_ALERT_THRESHOLD_KMH:
+                details.append(f"💨 High Wind ({slab['wind_speed']} km/h)")
+            if slab['visibility_km'] <= VISIBILITY_ALERT_THRESHOLD_KM:
+                details.append(f"👁️ Low Visibility ({slab['visibility_km']} km)")
+            if slab['mm'] > 0:
+                details.append(f"🌧️ Rain ({slab['mm']} mm, {slab['type']})")
+            if details:
+                slab_alerts.append((slab['time_range'], "; ".join(details)))
+        if slab_alerts:
+            for time_range, alert_detail in slab_alerts:
+                st.markdown(f"<div class='alert-moderate'><strong>⏰ {time_range}:</strong> {alert_detail}</div>", unsafe_allow_html=True)
+        elif impact_level == "Low":
+            st.markdown("<div class='alert-low'>✅ No operational hazards detected for today.</div>", unsafe_allow_html=True)
+
     tab1, tab2 = st.tabs(["📅 Today", "📅 Tomorrow"])
     for tab, day_offset in [(tab1, 0), (tab2, 1)]:
         target_day = current_date_ist + timedelta(days=day_offset)
