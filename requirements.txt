@@ -3,3 +3,13 @@ pandas>=2.2.2
 numpy>=2.2.0
 python-dotenv
 requests
+streamlit
+requests
+pandas
+numpy
+matplotlib\
+tomorrowio
+openmeteo
+datetime
+math
+os
